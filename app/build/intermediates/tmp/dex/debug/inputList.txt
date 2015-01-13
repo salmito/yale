@@ -1,0 +1,2 @@
+C:\Users\tiago\AndroidstudioProjects\hex\app\build\intermediates\classes\debug
+C:\Users\tiago\AndroidstudioProjects\hex\app\build\intermediates\pre-dexed\debug\support-v4-19.1.0-a647eed75a7e28b914e5b24ce3d150be3d1fb1db.jar
