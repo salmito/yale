@@ -3,7 +3,7 @@ local Object=require'Object'
 
 local gl=require'gl'
 
-local shader=require'framework.shader'
+local shader=require'framework.glutils'
 
 local Program=class(Object,function(self,vertex,fragment,uniforms,attribs) 
     self.vs,self.fs,self.id=shader.compile(vertex,fragment)
@@ -30,7 +30,7 @@ function Program:use()
   return gl.glUseProgram(self.id)
 end
 
-function Program:finish()
+function Program:finalize()
   return gl.glDeleteProgram(self.id)
 end
 

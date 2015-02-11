@@ -1,7 +1,10 @@
 local class=require'Class'
 
-local Object=class(function(o)
+local Object=class(function(o,f)
+    if f then f(o) end
 end)
+
+Object.Class=class
 
 function Object:__gc()
   self:finish()
@@ -17,7 +20,7 @@ end
 function Object:render()
 end
 
-function Object:finish()
+function Object:finalize()
 end
 
 return Object

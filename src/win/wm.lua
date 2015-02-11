@@ -54,7 +54,6 @@ function t.InitSDL(ww, wh, fs)
 
   -- TODO: This needs to be able to be cross platform.
   local screen = sdl.SDL_SetVideoMode( ww, wh, 32, sdlbits )
-  print("Screen:", screen.w, screen.h )
   local sdl_screen			= screen
 
   -- Get Window info
@@ -63,9 +62,7 @@ function t.InitSDL(ww, wh, fs)
   sdl.SDL_GetWMInfo( wminfo )
 
   local systems 		= { "win", "x11", "dfb", "cocoa", "uikit" }
-  local subsystem 	= wminfo.subsystem
-  --for k,v in pairs(wminfo.info) do print(k,v) end
-  print('aqui',wminfo.info,wminfo.subsystem==sdl.SDL_SYSWM_WINDOWS)
+  local subsystem 	= wminfo.subsystem  
   local wminfo 		= wminfo.info['win']--systems[subsystem]]
   local window 		= wminfo.window
   local display 		= nil
@@ -93,9 +90,13 @@ function t.InitSDL(ww, wh, fs)
   local callbacks={}
 
   windowStruct.on = function(tp, f)
-    print('Added callback for event ',tp)
+    --print('Added callback for event ',tp)
       callbacks[tp]=callbacks[tp] or {}
       callbacks[tp][#callbacks[tp]+1]=f
+  end
+
+  windowStruct.setCaption=function(str,iconStr)
+    sdl.SDL_WM_SetCaption(str,iconStr)
   end
 
   -- Update window function
@@ -107,7 +108,7 @@ function t.InitSDL(ww, wh, fs)
     windowStruct.fps = 1.0/windowStruct.frameMs
 
     -- Update the window caption with statistics
-    sdl.SDL_WM_SetCaption( string.format("%dx%d | %.2f fps | %.2f ms/frame", screen.w, screen.h, windowStruct.fps, windowStruct.frameMs),nil)
+--    sdl.SDL_WM_SetCaption( string.format("%dx%d | %.2f fps | %.2f ms/frame", screen.w, screen.h, windowStruct.fps, windowStruct.frameMs),nil)
 
     -- Clear the KeyBuffers every frame - we dont keep crap lying around (do it yourself if you want!!)
     windowStruct.KeyUp			= {}
@@ -224,7 +225,7 @@ function t.InitEGL(wm)
   local dpymode = ffi.new("SDL_DisplayMode[1]")
   local currdpy = sdl.SDL_GetCurrentDisplayMode();
   local res = sdl.SDL_GetDesktopDisplayMode(currdpy, dpymode)
-  print("Screen Display:", dpymode[0].w, dpymode[0].h, dpymode[0].refresh_rate)
+  --print("Screen Display:", dpymode[0].w, dpymode[0].h, dpymode[0].refresh_rate)
 
   return { surf=surf, ctx=cfg_ctx, dpy=dpy, config=cfg[0], rconf=r, display=dpymode[0] }
 end

@@ -86,7 +86,7 @@ int fractal(vec2 p) {
 }
 
 vec3 color(int i) {
-	float f = float(i)/float(iters) * time;
+	float f = float(i)/float(iters) * (time);
 	f=f*f*2.;
 	//return vec3(f,f,f);
 	return vec3((sin(f*2.0)), (sin(f*3.0)), abs(sin(f*7.0)));
