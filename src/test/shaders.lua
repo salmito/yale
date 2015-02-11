@@ -68,8 +68,9 @@ uniform vec2 resolution;
 const int iters = 300;
 
 int fractal(vec2 p) {
-  
-	vec2 seed = vec2(0.098386255, 0.63876627);	
+  	vec2 m=mouse / resolution.xy;
+
+	vec2 seed = vec2(m);	
 	
 	
 	for (int i = 0; i < iters; i++) {
@@ -85,7 +86,7 @@ int fractal(vec2 p) {
 }
 
 vec3 color(int i) {
-	float f = float(i)/float(iters) * 2.0;
+	float f = float(i)/float(iters) * time;
 	f=f*f*2.;
 	//return vec3(f,f,f);
 	return vec3((sin(f*2.0)), (sin(f*3.0)), abs(sin(f*7.0)));
