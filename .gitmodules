@@ -1,0 +1,3 @@
+[submodule "ZeroBraneStudio"]
+	path = ZeroBraneStudio
+	url = https://github.com/pkulchenko/ZeroBraneStudio.git
