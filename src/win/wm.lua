@@ -223,8 +223,9 @@ function t.InitEGL(wm)
   --print('surf/ctx', surf, r0, ctx, r, n_cfg[0])
 
   local dpymode = ffi.new("SDL_DisplayMode[1]")
-  local currdpy = sdl.SDL_GetCurrentDisplayMode();
-  local res = sdl.SDL_GetDesktopDisplayMode(currdpy, dpymode)
+  local currdpy = ffi.new("SDL_DisplayMode[1]")
+  sdl.SDL_GetCurrentDisplayMode(0,currdpy);
+  sdl.SDL_GetDesktopDisplayMode(0, dpymode)
   --print("Screen Display:", dpymode[0].w, dpymode[0].h, dpymode[0].refresh_rate)
 
   return { surf=surf, ctx=cfg_ctx, dpy=dpy, config=cfg[0], rconf=r, display=dpymode[0] }

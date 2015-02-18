@@ -30,6 +30,12 @@ function Program:use()
   return gl.glUseProgram(self.id)
 end
 
+function Program:setUniform(tp,uniform,...)
+  local f=gl["glUniform"..tp]
+  asset(type(f)=='function',"Invalid uniform type")
+  f(self:getUniform(uniform),...)
+end
+
 function Program:finalize()
   return gl.glDeleteProgram(self.id)
 end

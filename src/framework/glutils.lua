@@ -26,7 +26,7 @@ local function create(src,type)
   local shader=gl.glCreateShader(type)
   if shader==0 then
     print( "Unable to Create Shader Object: glGetError: " .. tonumber( gl.glGetError()) )
-    return nil
+    return 0
   end
 
   local tsrc = ffi.new( "char["..(string.len(src)+1).."]", src )
@@ -34,7 +34,7 @@ local function create(src,type)
 
   gl.glShaderSource( shader, 1, srcs, nil )
   gl.glCompileShader ( shader )
-
+  print('shader',shader)
   validate(shader)
   return shader
 end
@@ -44,7 +44,7 @@ local function compile(vShader, fShader)
   local fs = create( fShader, gl.GL_FRAGMENT_SHADER )
 
   local prog = gl.glCreateProgram()
-
+  print('aqui',vs,prog)
   gl.glAttachShader( prog, vs )
   gl.glAttachShader( prog, fs )
 

@@ -856,23 +856,23 @@ ffi.cdef[[
    typedef struct SDL_SysWMinfo {
       SDL_version    version;
       SDL_SYSWM_TYPE subsystem;
-      union {
-	 struct {
+      union info {
+	 struct win {
             void* window; // HWND
 	 } win;
-	 struct {
+	 struct x11 {
             void* display; // Display*
             void* window;  // Window
 	 } x11;
-	 struct {
+	 struct dfb {
             void* dfb;     // IDirectFB*
             void* window;  // IDirectFBWindow*
             void* surface; // IDirectFBSurface*
 	 } dfb;
-	 struct {
+	 struct cocoa {
             void* window;  // NSWindow*
 	 } cocoa;
-	 struct  {
+	 struct uikit {
 	    void* window; // UIWindow*
 	 } uikit;
 	 int dummy;
@@ -1561,7 +1561,7 @@ ffi.cdef[[
    int              SDL_GetNumDisplayModes(int displayIndex); 
    int              SDL_GetDisplayMode(int displayIndex, int modeIndex, SDL_DisplayMode * mode);
    int              SDL_GetDesktopDisplayMode(int displayIndex, SDL_DisplayMode * mode); 
-   int              SDL_GetCurrentDisplayMode(); 
+   int              SDL_GetCurrentDisplayMode(int displayIndex, SDL_DisplayMode * mode); 
    SDL_DisplayMode* SDL_GetClosestDisplayMode(int displayIndex, const SDL_DisplayMode * mode, SDL_DisplayMode * closest);
    int            SDL_GetWindowDisplay(         SDL_Window*  );
    int            SDL_SetWindowDisplayMode(     SDL_Window*, const SDL_DisplayMode* );

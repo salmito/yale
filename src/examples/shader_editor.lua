@@ -1,6 +1,12 @@
+if (...) then
+  
+end
+
 local gl  = require( "gl")
-local sdl = require( "ffi/sdl" )
+
 local ffi = require( "ffi" )
+local sdl = require( "ffi/sdl" )
+local cr  = require( "ffi/cairo" )
 
 local Window=require'Window'
 local Object=require'Object'
@@ -27,7 +33,7 @@ local function compile(fragment)
   return currentProgram
 end
 
-local width,height=1024,768
+local width,height=800,600
 
 local surface=Window("Main",width,height,false)
 
@@ -97,12 +103,14 @@ end)
 
 function main:render(surface)
     if not self.currentProgram then return end
-    self.currentProgram:use()
+    local current=self.currentProgram
+    
+    current:use()
 
-    gl.glUniform1f(self.currentProgram:getUniform('time'), os.clock()-self.lastTime);
-    gl.glUniform2f(self.currentProgram:getUniform('mouse'), self.mouse.x, self.mouse.y );
-    gl.glUniform2f(self.currentProgram:getUniform('resolution'),surface.width, surface.height);
-
+    current:setUniform('2f','resolution',surface.width,surface.height)
+    current:setUniform('1f','time',os.clock()-self.lastTime)
+    current:setUniform('2f','mouse',self.mouse.x,self.mouse.y)
+    
     gl.glActiveTexture( gl.GL_TEXTURE0 );
     gl.glBindTexture( gl.GL_TEXTURE_2D, self.backTarget.texture );
     gl.glBindFramebuffer( gl.GL_FRAMEBUFFER, self.frontTarget.framebuffer );
@@ -113,10 +121,9 @@ function main:render(surface)
     -- Set uniforms for screen shader
 
     self.screenProgram:use();
-
-    gl.glUniform2f(self.screenProgram:getUniform('resolution'), surface.width, surface.height);
-    gl.glUniform1i(self.screenProgram:getUniform('texture'), 1 );
-
+    self.screenProgram:setUniform('2f','resolution',surface.width,surface.height)
+    self.screenProgram:setUniform('1i','texture',1)
+  
     gl.glBindBuffer( gl.GL_ARRAY_BUFFER, buffer );
 
     gl.glVertexAttribPointer( self.screenProgram:getAttr('position'), 2, gl.GL_FLOAT, false, 0, bufferData );

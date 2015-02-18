@@ -1,1 +1,1 @@
-bin\Windows\x64\luajit.exe src/main.lua
+bin\Windows\x64\luajit.exe src/yale.lua
