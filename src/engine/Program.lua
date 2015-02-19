@@ -32,7 +32,7 @@ end
 
 function Program:setUniform(tp,uniform,...)
   local f=gl["glUniform"..tp]
-  asset(type(f)=='function',"Invalid uniform type")
+  assert(f,"Invalid uniform type")
   f(self:getUniform(uniform),...)
 end
 

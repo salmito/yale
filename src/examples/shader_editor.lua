@@ -1,5 +1,5 @@
 if (...) then
-  
+
 end
 
 local gl  = require( "gl")
@@ -66,6 +66,13 @@ local main=Object(function(self)
     self.backTarget=shader.createTarget(width,height)
     self.mouse={x=0,y=0}
     self.screenProgram = Program(vertex,fragment,{'resolution','texture'},{'position'})
+
+    self.screenProgram:use()
+    gl.glBindBuffer( gl.GL_ARRAY_BUFFER, buffer );
+
+    gl.glVertexAttribPointer( self.screenProgram:getAttr('position'), 2, gl.GL_FLOAT, false, 0, bufferData );
+    gl.glEnableVertexAttribArray( self.screenProgram:getAttr('position') );
+
     self.currentProgram=compile(shaders[1])
     self.lastTime=os.clock()
   end)
@@ -73,10 +80,10 @@ local main=Object(function(self)
 surface:on(sdl.SDL_VIDEORESIZE,function(evt)
     local w,h=evt.resize.w,evt.resize.h
     surface:setSize(w, h) 
-    
+
     main.frontTarget=shader.createTarget(w,h)
     main.backTarget=shader.createTarget(w,h)
-end)
+  end)
 
 surface:on(sdl.SDL_KEYDOWN,function(evt)
     if evt.key.keysym.scancode==sdl.SDL_SCANCODE_LEFT then
@@ -93,53 +100,51 @@ surface:on(sdl.SDL_KEYDOWN,function(evt)
 surface:on(sdl.SDL_MOUSEMOTION,function(evt) 
     main.mouse.x=evt.motion.x
     main.mouse.y=evt.motion.y
-end)
+  end)
 
 surface:on(sdl.SDL_WINDOWEVENT,function(evt) 
     surface:setSize(surface.width,surface.height)
-end)
-
-
+  end)
 
 function main:render(surface)
-    if not self.currentProgram then return end
-    local current=self.currentProgram
-    
-    current:use()
+  if not self.currentProgram then return end
+  local current=self.currentProgram
 
-    current:setUniform('2f','resolution',surface.width,surface.height)
-    current:setUniform('1f','time',os.clock()-self.lastTime)
-    current:setUniform('2f','mouse',self.mouse.x,self.mouse.y)
-    
-    gl.glActiveTexture( gl.GL_TEXTURE0 );
-    gl.glBindTexture( gl.GL_TEXTURE_2D, self.backTarget.texture );
-    gl.glBindFramebuffer( gl.GL_FRAMEBUFFER, self.frontTarget.framebuffer );
+  current:use()
 
-    gl.glClear( gl.GL_COLOR_BUFFER_BIT + gl.GL_DEPTH_BUFFER_BIT );
-    gl.glDrawArrays( gl.GL_TRIANGLES, 0, 6 );
+  current:setUniform('2f','resolution',surface.width,surface.height)
+  current:setUniform('1f','time',os.clock()-self.lastTime)
+  current:setUniform('2f','mouse',self.mouse.x,self.mouse.y)
 
-    -- Set uniforms for screen shader
+  gl.glActiveTexture( gl.GL_TEXTURE0 );
+  gl.glBindTexture( gl.GL_TEXTURE_2D, self.backTarget.texture );
+  gl.glBindFramebuffer( gl.GL_FRAMEBUFFER, self.frontTarget.framebuffer );
 
-    self.screenProgram:use();
-    self.screenProgram:setUniform('2f','resolution',surface.width,surface.height)
-    self.screenProgram:setUniform('1i','texture',1)
-  
-    gl.glBindBuffer( gl.GL_ARRAY_BUFFER, buffer );
+  gl.glClear( gl.GL_COLOR_BUFFER_BIT + gl.GL_DEPTH_BUFFER_BIT );
+  gl.glDrawArrays( gl.GL_TRIANGLES, 0, 6 );
 
-    gl.glVertexAttribPointer( self.screenProgram:getAttr('position'), 2, gl.GL_FLOAT, false, 0, bufferData );
-    gl.glEnableVertexAttribArray( self.screenProgram:getAttr('position') );
+  -- Set uniforms for screen shader
 
-    gl.glActiveTexture(gl.GL_TEXTURE1 );
-    gl.glBindTexture(gl.GL_TEXTURE_2D, self.frontTarget.texture);
+  self.screenProgram:use();
+  self.screenProgram:setUniform('2f','resolution',surface.width,surface.height)
+  self.screenProgram:setUniform('1i','texture',1)
 
-    -- Render front buffer to screen
+  gl.glBindBuffer( gl.GL_ARRAY_BUFFER, buffer );
+  gl.glVertexAttribPointer( self.screenProgram:getAttr('position'), 2, gl.GL_FLOAT, false, 0, bufferData );
+  gl.glEnableVertexAttribArray( self.screenProgram:getAttr('position') );
+  gl.glActiveTexture(gl.GL_TEXTURE1 );
+  gl.glBindTexture(gl.GL_TEXTURE_2D, self.frontTarget.texture);
 
-    gl.glBindFramebuffer( gl.GL_FRAMEBUFFER, 0);
+  -- Render front buffer to screen
 
-    gl.glClear( gl.GL_COLOR_BUFFER_BIT + gl.GL_DEPTH_BUFFER_BIT );
-    gl.glDrawArrays( gl.GL_TRIANGLES, 0, 6 );
+  gl.glBindFramebuffer( gl.GL_FRAMEBUFFER, 0);
 
-    self.frontTarget,self.backTarget=self.backTarget,self.frontTarget
+
+
+  gl.glClear( gl.GL_COLOR_BUFFER_BIT + gl.GL_DEPTH_BUFFER_BIT );
+  gl.glDrawArrays( gl.GL_TRIANGLES, 0, 6 );
+
+  self.frontTarget,self.backTarget=self.backTarget,self.frontTarget
 end
 
 surface:setTitle("Live shader editor","test")
