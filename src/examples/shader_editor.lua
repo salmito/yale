@@ -1,12 +1,7 @@
-if (...) then
-
-end
-
 local gl  = require( "gl")
 
 local ffi = require( "ffi" )
-local sdl = require( "ffi/sdl" )
-local cr  = require( "ffi/cairo" )
+local sdl = require( "ffi.sdl" )
 
 local Window=require'Window'
 local Object=require'Object'
@@ -35,7 +30,7 @@ end
 
 local width,height=800,600
 
-local surface=Window("Main",width,height,false)
+local surface=Window("Main",width,height)
 
 local fragment = [[#ifdef GL_ES
 			precision highp float;
@@ -56,7 +51,6 @@ local vertex = [[attribute vec3 position;
 
 			}
     ]]
-
 
 local main=Object(function(self)
     gl.glEnable(gl.GL_BLEND)

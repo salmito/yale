@@ -1,1 +1,1 @@
-return require( "ffi/OpenGLES2")
+return require( "ffi.OpenGLES2")

@@ -1,101 +1,95 @@
-local ffi = require( "ffi" )
-local sdl = require( "ffi/sdl" )
-
-local function handle(type, handlers)
-   local handler = handlers[type]
-   if handler then
-      return true, handler()
-   end
-end
-
-local function notify(object, event_handler, ...)
-   local func = object[ event_handler ]
-   if func then
-      return true, func(object, ...)
-   end
-end
-
-local function update(self, wait_for_events)
-   if self.window == nil then
-      self:init()
-   end
-   while (wait_for_events and sdl.SDL_WaitEvent or sdl.SDL_PollEvent)( self.event ) ~= 0 do
-      wait_for_events = false
-      local ks, mm, bn = self.event.key.keysym, self.event.motion, self.event.button.button
-      local handled_any, result = handle(
-	 self.event.type, {
-	    [sdl.SDL_QUIT] =
-	    function()
-	       notify(self, "exiting")
-	       sdl.SDL_Quit()
-	       self.window = nil
-	       notify(self, "exited")
-	       self.update = function() return false end
-	       return false
-	    end,
-	    [sdl.SDL_MOUSEMOTION] =
-	    function()
-	       self.mx, self.my = mm.x, mm.y
-	       notify(self, "mouse_moved")
-	    end,
-	    [sdl.SDL_MOUSEWHEEL]      = function() self.wheel = self.wheel + self.event.wheel.y end,
-	    [sdl.SDL_MOUSEBUTTONDOWN] = function() self.mb[ bn ] = true end,
-	    [sdl.SDL_MOUSEBUTTONUP]   = function() self.mb[ bn ] = false end,
-	    [sdl.SDL_KEYDOWN] =
-	    function()
-	       self.kb, self.km = ks.sym, ks.mod
-	       notify(self, "key_pressed")
-	    end,
-	    [sdl.SDL_VIDEORESIZE] =
-	    function()
-	       self.width, self.height = self.event.resize.w, self.event.resize.h
-	       notify(self, "resizing")
-	       self.window = sdl.SDL_SetVideoMode(
-		  self.width, self.height, 32,
-		  bit.bor(sdl.SDL_DOUBLEBUF*0, sdl.SDL_RESIZABLE)
-	       )
-	       notify(self, "resized")
-	    end,
-      })
-   end
-   sdl.SDL_Flip( self.window )
-   return true
-end
+local ffi = require"ffi"
+local egl = require"ffi.EGL"
+local gl  = require"ffi.OpenGLES2"
 
 local function init(self, width, height)
-   assert(self.window == nil)
-   sdl.SDL_Init(0xFFFF)
-   self.width = width or self.width or 640
-   self.height = height or self.height or 480
-   self.window = sdl.SDL_SetVideoMode(
-      self.width, self.height, 32,
-      bit.bor( sdl.SDL_DOUBLEBUF*0, sdl.SDL_RESIZABLE )
-   )
-   assert(NULL ~= self.window, ffi.string(sdl.SDL_GetError()))
-   self.event = ffi.new( "SDL_Event" )
-   self.event.type, self.event.resize.w, self.event.resize.h = sdl.SDL_VIDEORESIZE, self.width, self.height
-   sdl.SDL_PushEvent( self.event )
-   self.mx, self.my, self.mb = 0, 0, {}
-   self.kb, self.km = 0, 0
-   self.wheel = 0
-   self.idle = true
-   self.update = self.update or update
+  self.init=false
+  local sdl = require( "ffi.sdl" )
+  self.width=width
+  self.height=height
+  local screen = sdl.SDL_SetVideoMode( width, height, 32, sdl.SDL_RESIZABLE )
+  local wminfo = ffi.new( "SDL_SysWMinfo" )
+  sdl.SDL_GetVersion( wminfo.version )
+  sdl.SDL_GetWMInfo( wminfo )
+  local systems = { "win", "x11", "dfb", "cocoa", "uikit" }
+  local subsystem = tonumber(wminfo.subsystem)
+  local wminfo = wminfo.info[systems[subsystem]]
+  self.window = wminfo.window
+  self.display = nil
+  if systems[subsystem]=="x11" then
+    display = wminfo.display
+  end	      
+  local event = ffi.new( "SDL_Event" )
+  local prev_time, curr_time, fps = 0, 0, 0
+
+  local callbacks={}
+
+  local dpy,ctx, surf
+
+  self.update=function()
+    while sdl.SDL_PollEvent( event ) ~= 0 do
+      if callbacks[event.type] then
+        for _,f in ipairs(callbacks[event.type]) do f(event) end
+      end
+      if event.type == sdl.SDL_QUIT then
+        egl.eglDestroyContext( dpy, ctx )
+        egl.eglDestroySurface( dpy, surf )
+        egl.eglTerminate( dpy )
+        return false
+      end
+      if event.type == sdl.SDL_KEYUP and event.key.keysym.sym == sdl.SDLK_ESCAPE then
+        event.type = sdl.SDL_QUIT
+        sdl.SDL_PushEvent( event )
+      end
+    end
+    return true
+  end
+  self.exit=function() sdl.SDL_Quit() end
+
+  self.on = function(self,tp, f)
+    callbacks[tp]=callbacks[tp] or {}
+    callbacks[tp][#callbacks[tp]+1]=f
+    print('Loading callback',tp,callbacks[tp])
+  end
+
+  --init egl
+  if self.display == nil then
+    self.display = egl.EGL_DEFAULT_DISPLAY
+  end
+
+  dpy      = egl.eglGetDisplay( ffi.cast("intptr_t", self.display ))
+  local r        = egl.eglInitialize( dpy, nil, nil)
+  print('wm.display/dpy/r', self.display, dpy, r)
+
+  local cfg_attr = ffi.new( "EGLint[3]", egl.EGL_RENDERABLE_TYPE, egl.EGL_OPENGL_ES2_BIT, egl.EGL_NONE )
+  local ctx_attr = ffi.new( "EGLint[3]", egl.EGL_CONTEXT_CLIENT_VERSION, 2, egl.EGL_NONE )
+
+  local cfg      = ffi.new( "EGLConfig[1]" )
+  local n_cfg    = ffi.new( "EGLint[1]"    )
+
+  print('wm.window', self.window)
+
+  local r0       = egl.eglChooseConfig(dpy, cfg_attr, cfg, 1, n_cfg )
+
+  local c = cfg[0]
+
+--  for i=0,10 do
+--    if c[i]==egl.EGL_FALSE then break end
+--    print(i,c[i])
+--  end
+
+  surf     = egl.eglCreateWindowSurface( dpy, cfg[0], self.window, nil )
+  ctx      = egl.eglCreateContext(dpy, cfg[0], nil, ctx_attr )
+  local r        = egl.eglMakeCurrent(dpy, surf, surf, ctx)
+  print('surf/ctx', surf, r0, ctx, r, n_cfg[0])
+
+  self.flip=function()
+    gl.glFinish()
+    egl.eglSwapBuffers(dpy, surf)
+  end
+
+  return self
 end
 
-local function exit(self)
-   self.event.type = sdl.SDL_QUIT
-   sdl.SDL_PushEvent(self.event)
-end
-
-local function new()
-   return {
-      new = new,
-      init = init,
-      update = update,
-      exit = exit,
-   }
-end
-
-return new()
-
+return {init=init}
 

@@ -1,6 +1,6 @@
-local sdl = require( "ffi/SDL" )
-local cr = require( "ffi/cairo" )
-local wm = require( "lib/wm/sdl" )
+local sdl = require( "ffi.SDL" )
+local cr = require( "ffi.cairo" )
+local wm = require( "wm.sdl" )
 
 local function resized(self)
    local format = cr.CAIRO_FORMAT_ARGB32
