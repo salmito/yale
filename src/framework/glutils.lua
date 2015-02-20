@@ -1,5 +1,5 @@
 local ffi = require("ffi")
-local gl  = require("ffi/OpenGLES2")
+local gl  = require("ffi.OpenGLES2")
 
 local function validate(shader)
   local int = ffi.new( "GLint[1]", 0 )

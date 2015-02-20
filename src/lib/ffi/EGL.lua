@@ -186,13 +186,5 @@ ffi.cdef[[
       __eglMustCastToProperFunctionPointerType eglGetProcAddress( const char *procname );
 ]]
 
-local duh = [[
-//	 EGL_COLORSPACE			 = EGL_VG_COLORSPACE,
-//	 EGL_ALPHA_FORMAT		 = EGL_VG_ALPHA_FORMAT,
-//	 EGL_COLORSPACE_sRGB		 = EGL_VG_COLORSPACE_sRGB,
-//	 EGL_COLORSPACE_LINEAR		 = EGL_VG_COLORSPACE_LINEAR,
-//	 EGL_ALPHA_FORMAT_NONPRE	 = EGL_VG_ALPHA_FORMAT_NONPRE,
-//	 EGL_ALPHA_FORMAT_PRE		 = EGL_VG_ALPHA_FORMAT_PRE,
-]]
 
 return egl

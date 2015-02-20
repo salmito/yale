@@ -1,22 +1,19 @@
 local class=require'Class'
 local Object=require'Object'
 
-local gl  = require( "gl")
-local egl = require( "ffi/egl" )
+local gl  = require'gl'
 
 local table=require'table'
-local wm=require'win.wm'
+local wm=require'wm.sdl'
 
-local Window=class(Object,function(self,name,width,height,fullscreen)
+local Window=class(Object,function(self,name,width,height)
     Object.init(self)
+    wm:init(width, height)
     self.name=name
-    self.handle=wm.InitSDL(width, height, fullscreen)
-    self.fullscreen=fullscreen
-    self.handle.eglInfo = wm.InitEGL(self.handle)	
-    self.handle.runApp = self.handle:update()
+    self.wm=wm
+    self:setSize(width,height)
     self.objects={}
     gl.glClearColor ( 0.0, 0.0, 0.0, 0.0 )
-    self:setSize(width,height)
   end)
 
 function Window:__tostring()
@@ -30,11 +27,11 @@ function Window:setSize(w,h)
 end
 
 function Window:finalize()
-  self.handle:exit()
+  self.wm:exit()
 end
 
 function Window:setTitle(title,iconTitle)
-    self.handle.setCaption(title,iconTitle)
+    --self.handle.setCaption(title,iconTitle)
 end
 
 function Window:add(obj)
@@ -56,19 +53,18 @@ function Window:render()
   for _,obj in ipairs(self.objects) do
     obj:render(self)
   end
-  
   gl.glFinish()
-  egl.eglSwapBuffers( self.handle.eglInfo.dpy, self.handle.eglInfo.surf )
 end
 
 function Window:on(tp,f)
-  self.handle.on(tp,f)
+  self.wm:on(tp,f)
 end
 
 function Window:loop()
-  while self.handle:update() do
+  while self.wm:update() do
     self:prerender()
     self:render()
+    self.wm:flip()
   end
 end
 
