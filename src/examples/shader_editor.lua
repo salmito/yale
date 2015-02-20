@@ -1,17 +1,16 @@
 local gl  = require( "gl")
 
-local ffi = require( "ffi" )
-local sdl = require( "ffi.sdl" )
+local wm = require( "wm" )
 
-local Window=require'Window'
-local Object=require'Object'
-local Program=require'Program'
+local Window=require'engine.Surface'
+local Object=require'engine.Object'
+local Program=require'engine.Program'
 
-local shader=require'framework.glutils'
+local shader=require'lib.glutils'
 local buffer=shader.genBuffer()
-
-local bufferData=ffi.new('float[12]',{- 1.0, - 1.0, 1.0, - 1.0, - 1.0, 1.0, 1.0, - 1.0, 1.0, 1.0, - 1.0, 1.0})
-local shaders=require'examples.shaders'
+local newBuffer=require'lib.buffer'.newBuffer
+local bufferData=newBuffer('float',12,{- 1.0, - 1.0, 1.0, - 1.0, - 1.0, 1.0, 1.0, - 1.0, 1.0, 1.0, - 1.0, 1.0})
+local shaders=dofile'src\\examples\\shaders.lua'
 local curShader=0
 
 
@@ -30,7 +29,7 @@ end
 
 local width,height=800,600
 
-local surface=Window("Main",width,height)
+local surface=Window(width,height)
 
 local fragment = [[#ifdef GL_ES
 			precision highp float;
@@ -67,18 +66,18 @@ local main=Object(function(self)
     gl.glVertexAttribPointer( self.screenProgram:getAttr('position'), 2, gl.GL_FLOAT, false, 0, bufferData );
     gl.glEnableVertexAttribArray( self.screenProgram:getAttr('position') );
 
-    self.currentProgram=compile(shaders[1])
+    self.currentProgram=compile(shaders[4])
     self.lastTime=os.clock()
   end)
 
-surface:on(sdl.SDL_VIDEORESIZE,function(evt)
+surface:on(wm.VIDEORESIZE,function(evt)
     local w,h=evt.resize.w,evt.resize.h
     surface:setSize(w, h) 
 
     main.frontTarget=shader.createTarget(w,h)
     main.backTarget=shader.createTarget(w,h)
   end)
-
+--[[
 surface:on(sdl.SDL_KEYDOWN,function(evt)
     if evt.key.keysym.scancode==sdl.SDL_SCANCODE_LEFT then
       main.lastTime=os.clock()
@@ -99,7 +98,7 @@ surface:on(sdl.SDL_MOUSEMOTION,function(evt)
 surface:on(sdl.SDL_WINDOWEVENT,function(evt) 
     surface:setSize(surface.width,surface.height)
   end)
-
+--]]
 function main:render(surface)
   if not self.currentProgram then return end
   local current=self.currentProgram

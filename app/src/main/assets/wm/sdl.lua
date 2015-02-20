@@ -1,10 +1,12 @@
 local ffi = require"ffi"
-local egl = require"ffi.EGL"
-local gl  = require"ffi.OpenGLES2"
-
-local function init(self, width, height)
+local egl = require"lib.ffi.EGL"
+local gl  = require"lib.ffi.OpenGLES2"
+local sdl = require"lib.ffi.sdl"
+  
+local function init(self, surface, width, height)
+  print('initing',self,width,height)
+  self.surface=surface
   self.init=false
-  local sdl = require( "ffi.sdl" )
   self.width=width
   self.height=height
   local screen = sdl.SDL_SetVideoMode( width, height, 32, sdl.SDL_RESIZABLE )
@@ -84,12 +86,24 @@ local function init(self, width, height)
   print('surf/ctx', surf, r0, ctx, r, n_cfg[0])
 
   self.flip=function()
+    print('flipping')
     gl.glFinish()
     egl.eglSwapBuffers(dpy, surf)
+  end
+
+  self.loop=function(self)
+     while self:update() do
+      self.surface:prerender()
+      self.surface:render()
+      self:flip()
+    end
   end
 
   return self
 end
 
-return {init=init}
+return {
+  init=init,
+  VIDEORESIZE=sdl.SDL_VIDEORESIZE
+}
 

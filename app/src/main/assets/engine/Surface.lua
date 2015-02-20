@@ -5,13 +5,13 @@ local gl = require'gl'
 
 local wm=require'wm'
 
-local Surface=class(Object,function(self,width,height)
+local Surface=class(Object,function(self,width,height,...)
     Object.init(self)
-    wm:init(self, width, height)
-    self.wm=wm
+    wm:init(self,width, height,...)
     self:setSize(width,height)
+    self.wm=wm
     self.objects={}
-    gl.glClearColor ( 0.0, 0.0, 0.0, 0.0 )
+    gl.glClearColor ( 0.0, 1.0, 0.0, 0.0 )
 end)
 
 function Surface:__tostring()
@@ -50,7 +50,6 @@ function Surface:render()
     for _,obj in ipairs(self.objects) do
         obj:render(self)
     end
-    gl.glFinish()
 end
 
 function Surface:on(tp,f)

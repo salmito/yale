@@ -20,8 +20,6 @@ import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 public class Renderer implements GLSurfaceView.Renderer {
-    private int screenWidth;
-    private int screenHeight;
     private final MainView view;
 
     public Renderer(MainView view) {
@@ -31,24 +29,16 @@ public class Renderer implements GLSurfaceView.Renderer {
 
     @Override
     public void onDrawFrame(GL10 gl) {
-        GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT | GLES20.GL_COLOR_BUFFER_BIT);
-    }
-
-    @Override
-    public void onSurfaceChanged(GL10 gl, int width, int height) {
-        this.screenWidth = width;
-        this.screenHeight = height;
-        GLES20.glViewport(0, 0, width, height);
+        view.draw();
     }
 
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
         view.init();
-        GLES20.glEnable(GLES20.GL_BLEND);
-        GLES20.glBlendFunc(GLES20.GL_ONE, GLES20.GL_ONE_MINUS_SRC_ALPHA);
-        GLES20.glEnable(GLES20.GL_DEPTH_TEST);
-        GLES20.glDepthFunc(GLES20.GL_LEQUAL);
-        GLES20.glDepthMask(true);
+    }
+
+    @Override
+    public void onSurfaceChanged(GL10 gl10, int i, int i2) {
     }
 
 

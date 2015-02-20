@@ -1,24 +1,44 @@
---
--- Created by IntelliJ IDEA.
--- User: Tiago
--- Date: 19/02/2015
--- Time: 15:54
--- To change this template use File | Settings | File Templates.
---
-local gl=luajava.bindClass('android.opengl.GLES20')
+if luajava then
+  local gl=luajava.bindClass('android.opengl.GLES20')
+  local cache={}
 
-local cache={}
-
-local function getCache(_,name)
+  local function getCache(_,name)
     if cache[name] then return cache[name] end
     if type(gl[name])=='function' then
-        cache[name]=function(...)
-            return gl[name](gl,...)
+      cache[name]=function(...)
+        local ret=gl[name](gl,...)
+        local glErr=tonumber(gl:glGetError())
+        local err=(glErr ~= gl.GL_NO_ERROR)
+        if err then
+            print(name,err,glErr)
+            error("OpengGL Error")
         end
-        return cache[name]
+        print(err)
+        return ret
+      end
+      return cache[name]
     end
     return gl[name]
+  end
+
+  return setmetatable({},{__index=getCache})
+elseif pcall(require,'ffi') then
+  local ffi=require'ffi'
+  local gl=require( "lib.ffi.OpenGLES2")
+  local cache={}
+  local function getCache(_,name)
+    if cache[name] then return cache[name] end
+    if type(gl[name])=='cdata' then
+        print(name,gl[name],type(gl[name]))
+      cache[name]=function(...)
+        local ret=gl[name](...)
+        print((tonumber(gl.glGetError()) == tonumber(gl.GL_NO_ERROR)))
+        assert(tonumber(gl.glGetError()) == tonumber(gl.GL_NO_ERROR),"OpenGL ES2 error: "..gl.glGetError().." "..gl.GL_NO_ERROR)
+        return ret
+      end
+      return cache[name]
+    end
+    return gl[name]
+  end 
+  return setmetatable({},{__index=getCache})
 end
-
-return setmetatable({},{__index=getCache})
-
